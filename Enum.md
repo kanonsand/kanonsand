@@ -1,0 +1,33 @@
+##Enum
+
+enum用来定义常量。
+
+1、编译期间会自动加入一些特殊的方法。比如values（）方法，返回一个包含所有元素的数组，数组顺序按照声明顺序。
+
+2、enum都继承自java.lang.Enum，java单继承，所以enum无法继承其他类
+
+3、enum中除了常量外，还可以定义其他属性和方法，按照规定，所有常量必须放在所有属性和方法的前面。常量之间用逗号分隔，所有常量定义完后添加一个分号
+
+4、enum可以有构造函数，其中的字段可以在构造函数中初始化。构造函数不能用public或者protected修饰，只能使用private或者默认的可见级别。生成常量时会自动调用这些构造函数，enum的构造函数不允许手动调用。
+
+```java
+enum NullableFieldEnum{
+        FILE_TAG("file_tag"),
+    	FILE(),
+        TYPE,
+        ;
+        private String field;
+
+        NullableFieldEnum() {
+        }
+        NullableFieldEnum(String field) {
+            this.field = field;
+        }
+        public String getField() {
+            return field;
+        }
+
+    }
+```
+
+如上面的例子，enum中除了三个常量外还额外定义了一个field字段，以及构造函数和一个getter方法，这些字段和方法必须放在所有常量的后面。两个常量的定义分别调用不同的构造函数，对于常量FILE_TAG，调用参数为String的构造函数，对于常量FILE()和TYPE，调用无参构造函数，与调用普通对象的构造函数类似，不过调用无参构造函数时圆括号可以省略不写。编译器编译时会自动调用。

@@ -1,0 +1,324 @@
+## Caffeine
+
+### 	1、创建方式
+
+​		builder方式创建：			
+
+```java
+private static Cache<String, CacheObject> cache = Caffeine.newBuilder()
+            /**
+             * expireAfterAccess和expireAfterWrite效果与expireAfter相同，因此两种方式		选择一种实现即可
+             */
+//            .expireAfterAccess(Duration.ZERO)
+//            .expireAfterWrite(Duration.ZERO)
+            .expireAfter(new Expiry<String, CacheObject>() {
+                @Override
+                public long expireAfterCreate(@NonNull String s, @NonNull CacheObject cacheObject, long l) {
+                    if (cacheObject.getTemp()) {
+                        return 10000L;
+                    }
+                    return Long.MAX_VALUE;
+                }
+
+                @Override
+                public long expireAfterUpdate(@NonNull String s, @NonNull CacheObject cacheObject, long l, @NonNegative long l1) {
+                    return 10000L;
+                }
+
+                @Override
+                public long expireAfterRead(@NonNull String s, @NonNull CacheObject cacheObject, long l, @NonNegative long l1) {
+                    return 1L;
+                }
+            })
+            /**
+             * maximumSize和maximumWeight两个值都是用于控制缓存的最大容量，因此只能二选一
+             */
+            .maximumSize(20)
+//            .maximumWeight(1000L)
+
+            /**
+             * build有带参和不带参两种
+             * 不带参build返回的cache对象的get方法需要提供缓存不存在时的生成方法
+             * 带参数的build直接将缓存生成方式传入，之后返回的cache对象无需再次提供
+             * 经验证是因为不同的build生成了不同的cache对象
+             *  不带参build生成BoundedLocalManualCache对象
+             *  带参build生成BoundedLocalLoadingCache对象（此时需要指定返回值为					 *	LoadingCache，否则无法直接调用get(key)方法
+             */
+            .build(
+                    key -> CacheObject.builder().name(key).build()
+            );
+```
+
+### 2、添加缓存
+
+​	caffeine提供了三种策略添加缓存
+
+#### 		（1）、manual populating（手动操作）
+
+​					这个策略下手动将数据放入缓存，然后才能取出，只需要在创建缓存的build方法不指定任何				参数就可以。
+
+```java
+        Cache<String, DataObject> cache = Caffeine.newBuilder()
+          .expireAfterWrite(1, TimeUnit.MINUTES)
+          .maximumSize(100)
+          .build();//build不带任何参数
+```
+
+​					从缓存中获取数据使用getIfPresent(key)方法，缓存不存在将返回null
+
+```java
+        String key = "A";
+        DataObject dataObject = cache.getIfPresent(key);
+```
+
+​					如果使用get方法从缓存中获取数据，需要额外提供一个Function参数，这个Function在key				不存在的情况下自动创建缓存值并返回。这个Function会被自动调用并且是线程安全的，因此				通常更喜欢用get方法获取并放入（因为getIfPresent检测到不存在之后手动放入需要自行保证				线程安全）
+
+```java
+        DataObject dataObject = cache
+          .get(key, k -> new DataObject(k));
+```
+
+​					getAll批量获取缓存，同样参数需要一个Function，getAllPresent批量获取存在的缓存，不				存在的值为null
+
+​					删除缓存只需要调用invalidate方法
+
+```java
+        cache.invalidate(key);
+```
+
+#### 		（2）、Synchronous Loading（同步加载）
+
+​					构建缓存时提供一个Function来初始化缓存值，和手动操作中的get方法的Function参数作用				类似
+
+```java
+        LoadingCache<String, DataObject> cache = Caffeine.newBuilder()
+          .maximumSize(100)
+          .expireAfterWrite(1, TimeUnit.MINUTES)
+          .build(k -> DataObject.get("Data for " + k));
+```
+
+​					这种方式构建的缓存获取时get方法无需再次传入Function
+
+```java
+        DataObject dataObject = cache.get(key);
+```
+
+​					甚至可以用getAll方法批量获取缓存
+
+```java
+        Map<String, DataObject> dataObjectMap 
+          = cache.getAll(Arrays.asList("A", "B", "C"));
+```
+
+#### 			（3）、Asynchronous Loading（异步加载）
+
+​					异步加载和同步加载类似，需要构建时提供一个Function，不同的是缓存创建是异步的并且				返回一个持有缓存值的CompletableFuture对象。
+
+```java
+        AsyncLoadingCache<String, DataObject> cache = Caffeine.newBuilder()
+          .maximumSize(100)
+          .expireAfterWrite(1, TimeUnit.MINUTES)
+          .buildAsync(k -> DataObject.get("Data for " + k));
+```
+
+​					和同步加载类似，使用get和getAll方法，因为返回的是CompletableFuture对象，因此提供				了丰富的接口来操作这些对象。
+
+```java
+        String key = "A";
+
+        cache.get(key).thenAccept(dataObject -> {
+            assertNotNull(dataObject);
+            assertEquals("Data for " + key, dataObject.getData());
+        });
+
+        cache.getAll(Arrays.asList("A", "B", "C"))
+          .thenAccept(dataObjectMap -> assertEquals(3, dataObjectMap.size()));
+```
+
+### 3、驱逐策略
+
+​		caffeine提供了三种缓存驱逐策略：size-based,time-based,reference-based（基于大小、基于时间、基于引用）
+
+#### 			（1）、size-based
+
+​					这种策略假定当缓存数据达到指定容量的时候发生缓存驱逐。caffeine中有两种衡量缓存大小的方式：缓存的数量或缓存大小（weight）
+
+##### 					基于缓存数量限制（size）
+
+```java
+        LoadingCache<String, DataObject> cache = Caffeine.newBuilder()
+          .maximumSize(1)  //指定maximumsize参数
+          .build(k -> DataObject.get("Data for " + k));
+
+        assertEquals(0, cache.estimatedSize());  //新创建的缓存大小为0
+		cache.get("A");  //基于前面的介绍，缓存A不存在，会自动被创建
+		assertEquals(1,cache.estimatedSize()); //此时缓存大小为1
+		cache.get("B"); //缓存B也会被创建
+		cache.cleanUp();// 注意cleanup的调用，因为缓存的驱逐是异步的，调用cleanup可以等待							缓存驱逐完成，如果不调用cleanup缓存的大小可能还是2
+		assertEquals(1,cache.estimatedSize());//缓存大小还是1
+```
+
+##### 					基于缓存大小限制（weight）
+
+​						基于缓存大小限制，需要提供一个weigher的Function，这个Function提供计算缓存					weight的功能。
+
+```java
+        LoadingCache<String, DataObject> cache = Caffeine.newBuilder()
+          .maximumWeight(10)  //指定maximumWeight
+          .weigher((k,v) -> 5) //提供计算每个缓存weight的Function，这里所有缓存大小返回5
+          .build(k -> DataObject.get("Data for " + k));
+
+        assertEquals(0, cache.estimatedSize()); //刚创建的缓存大小为0
+
+        cache.get("A");
+        assertEquals(1, cache.estimatedSize()); //新增一个缓存A，因为缓存weight为5，未													达到限制，因此该缓存不会被驱逐
+
+        cache.get("B");
+        assertEquals(2, cache.estimatedSize()); //再加入一个缓存B，此时总缓存的weight为													10，也无需驱逐
+
+        cache.get("C");
+        cache.cleanUp();	//再加入一个缓存C，此时缓存总weight为15，超过限制，触发驱逐，						同样要注意调用cleanUp等待驱逐完成，驱逐之后缓存中留下2个
+        assertEquals(2, cache.estimatedSize());
+```
+
+#### 			（2）、time-based
+
+​						caffeine提供了三种类型的基于时间的驱逐策略：
+
+​							expire after access：在读/写之后指定时间被驱逐
+
+​							expire after write：在写之后的指定时间被驱逐
+
+​							custom policy：自行提供过期时间策略
+
+```java
+        LoadingCache<String, DataObject> cache = Caffeine.newBuilder()
+          .expireAfterAccess(5, TimeUnit.MINUTES)//读/写后指定时间
+          .build(k -> DataObject.get("Data for " + k));
+
+          cache = Caffeine.newBuilder()
+          .expireAfterWrite(10, TimeUnit.SECONDS)//写之后指定时间
+          .weakKeys()
+          .weakValues()
+          .build(k -> DataObject.get("Data for " + k));
+```
+
+​							对于自定义过期时间策略，需要自己实现Expiry接口
+
+```java
+        cache = Caffeine.newBuilder().expireAfter(new Expiry<String, DataObject>() 			{
+            //接口包含三个方法，对于不想过期的key可以设置返回值为Long.MAX_VALUE
+            @Override
+            public long expireAfterCreate(
+              String key, DataObject value, long currentTime) {
+                return value.getData().length() * 1000;
+            }
+            @Override
+            public long expireAfterUpdate(
+              String key, DataObject value, long currentTime, long currentDuration) {
+                return currentDuration;
+            }
+            @Override
+            public long expireAfterRead(
+              String key, DataObject value, long currentTime, long currentDuration) {
+                return currentDuration;
+            }
+        }).build(k -> DataObject.get("Data for " + k));
+```
+
+
+
+#### 				（3）基于引用的驱逐策略
+
+​							通过java不同种类的引用，让jvm的GC来驱逐缓存。caffeine可以配置两种引用：软引 						用（soft-reference）和虚引用（weak-reference）。
+
+```java
+        LoadingCache<String, DataObject> cache = Caffeine.newBuilder()
+          .expireAfterWrite(10, TimeUnit.SECONDS)
+          .weakKeys()        //虚引用可以配置虚引用key和value
+          .weakValues()
+          .build(k -> DataObject.get("Data for " + k));
+
+        cache = Caffeine.newBuilder()
+          .expireAfterWrite(10, TimeUnit.SECONDS)
+          .softValues()        //软引用只能配置value
+          .build(k -> DataObject.get("Data for " + k));
+```
+
+### 	4、刷新
+
+​			caffeine可以配置指定时间后自动刷新缓存，配置刷新和配置驱逐策略语法类似，不过要注意两者的区别：对于驱逐，如果get(key)时该key已达到被驱逐的条件，将会根据Function生成新的value并返回，而对于刷新，如果key已达到刷新条件，调用get(key)依然会返回旧的value，并且异步生成新的value，下次获取将拿到新的value。
+
+```java
+        Caffeine.newBuilder()
+          .refreshAfterWrite(1, TimeUnit.MINUTES)//语法和expireAfterWrite类似
+          .build(k -> DataObject.get("Data for " + k));
+```
+
+
+
+### 5、统计
+
+​		caffeine提供记录统计功能，只需要在创建缓存时调用recordStatus，之后可以获取到缓存的使用情况统计。
+
+```java
+        LoadingCache<String, DataObject> cache = Caffeine.newBuilder()
+          .maximumSize(100)
+          .recordStats()  //开启统计功能
+          .build(k -> DataObject.get("Data for " + k));
+        cache.get("A");
+        cache.get("A");
+
+        assertEquals(1, cache.stats().hitCount());   //获取命中次数，如果未开启															recordStatus，获取的计数都是0
+        assertEquals(1, cache.stats().missCount());
+```
+
+​		recordStatus可以传入一个StatsCounter的Supplier，StatsCounter接口包含记录hit、miss、eviction等的接口，记录的结果通过snapshot方法返回一个CacheStats对象暴露给外部。StatsCounter
+
+的各个方法会在Cache的具体实现中被调用
+
+```java
+LoadingCache<Integer,Long> myCache=Caffeine.newBuilder().maximumSize(5)
+                .recordStats(()->
+                        new StatsCounter(){
+
+                            @Override
+                            public void recordHits(@NonNegative int count) {
+									//记录命中
+                            }
+
+                            @Override
+                            public void recordMisses(@NonNegative int count) {
+									//记录未命中
+                            }
+
+                            @Override
+                            public void recordLoadSuccess(@NonNegative long loadTime) {						//记录缓存加载成功的时间
+
+                            }
+
+                            @Override
+                            public void recordLoadFailure(@NonNegative long loadTime) {						//与加载成功相反，如果加载过程中发生了异常，记录该时间
+
+                            }
+
+                            @Override
+                            void recordEviction(@NonNegative int weight, RemovalCause cause){			//recordEviction有多个重载方法，不过其他方法将被弃用，仅保									留这个方法，这个方法仅应在缓存自动evict的时候调用，用户									 的主动invalidate方法不会触发这个方法
+
+                            }
+
+                            @Override
+                            public @NonNull CacheStats snapshot() {
+                                //特别注意这个方法，返回的CacheStats对象包含当前										StatsCounter的各个属性，cache正是通过这个返回的对象									获取到各种计数。CacheStats
+                                return null;
+                            }
+                        }
+                )
+                .refreshAfterWrite(5L,TimeUnit.SECONDS).build(key -> System.currentTimeMillis());
+```
+
+
+
+
+
+​					
