@@ -4,9 +4,9 @@ title: "jvm safepoint"
 tags: ["jvm", "java"]
 ---
 
-jvm中的安全点
+jvm中的安全点.
 
-#jvm safepoint
+# jvm safepoint
 
 以下操作会阻止jvm进入safepoint：
 
@@ -38,4 +38,4 @@ jvm中的安全点
 
 reference
 
-http://jvm-options.tech.xebia.fr/#  查询所有可用的jvm参数
+http://jvm-options.tech.xebia.fr/# 查询所有可用的jvm参数

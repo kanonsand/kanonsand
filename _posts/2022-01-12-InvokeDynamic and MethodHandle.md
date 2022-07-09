@@ -4,7 +4,8 @@ title: "InvokeDynamic and MethodHandle"
 tags: ["invokeDynamic", "java"]
 ---
 
-# InvokeDynamic and MethodHandle
+jvm的invokedynamic指令以及java中的MethodHandler.
+
 
 ## InvokeDynamic指令
 
@@ -110,7 +111,7 @@ LookUp对象包含多个findXXX方法，用于根据类、方法签名、方法�
 
 
 
-##Method Handle 和 invokeDynamic 协同工作
+## Method Handle 和 invokeDynamic 协同工作
 
 invokeDynamic通过bootstrap method来使用method handle，不同于invokeVirtual，invokeDynamic不需要接收对象，相反，它更加类似于invokeStatic，通过BSM返回一个CallSite类型的对象，这个对象包含method handle。
 

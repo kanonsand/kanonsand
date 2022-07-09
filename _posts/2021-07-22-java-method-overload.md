@@ -1,11 +1,11 @@
-
 ---
 layout: post
 title: "java重载方法匹配优先级"
 tags: ["语法", "java"]
 ---
 
-# java method overload priority
+java重载方法匹配优先级.
+
 
 ## the priority in java overload is :  
 **exact match** > **widening** > **boxing/unboxing** > **varargs**

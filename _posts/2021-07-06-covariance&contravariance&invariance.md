@@ -4,37 +4,38 @@ title: "java泛型的协变、逆变与不变"
 tags: ["语法", "泛型", "java"]
 ---
 
+泛型的协变、逆变、不变.
 
-##协变、逆变、不变 （covariance，contra variance，invariance）
+## 协变、逆变、不变 （covariance，contra variance，invariance）
 
 基本概念如下：
 
 _假定Base为基类，Derived为衍生类_
 
-###协变（covariance）
+### 协变（covariance）
 
-协变允许使用更加具体的类来代替原来的类，例如c#中
+协变允许使用更加具体的类来代替原来的类，例如c# 中
 
-```c#
+```c# 
 IEnumerable<Derived> d = new List<Derived>();
 IEnumerable<Base> b = d;
 ```
 
-###逆变（contra variance）
+### 逆变（contra variance）
 
-逆变允许使用更基础的类来替换原来的类，例如c#中
+逆变允许使用更基础的类来替换原来的类，例如c# 中
 
-```c#
+```c# 
 Action<Base> b = (target) => { Console.WriteLine(target.GetType().Name); };
 Action<Derived> d = b;
 d(new Derived());
 ```
 
-###不变（invariance）
+### 不变（invariance）
 
 不变意味着只能使用声明时确定的类型
 
-简单来说，协变接受子类，逆变接受父类。java中协变逆变和c#中较为不同，接下来详细讨论。
+简单来说，协变接受子类，逆变接受父类。java中协变逆变和c# 中较为不同，接下来详细讨论。
 
 ### Array
 
