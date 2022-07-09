@@ -1,4 +1,12 @@
-jvm safepoint
+---
+layout: post
+title: "jvm safepoint"
+tags: ["jvm", "java"]
+---
+
+jvm中的安全点
+
+#jvm safepoint
 
 以下操作会阻止jvm进入safepoint：
 

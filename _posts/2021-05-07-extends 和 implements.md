@@ -1,3 +1,8 @@
+---
+layout: post
+title: "Java中extends和implements"
+tags: ["java"]
+---
 ##extends 和 implements
 
 | extends                                                      | implements                             |

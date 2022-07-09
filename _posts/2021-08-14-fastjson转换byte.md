@@ -1,3 +1,10 @@
+---
+layout: post
+title: "fastjson对byte数组的处理"
+tags: ["fastjson", "java"]
+---
+
+fastjson对byte数组的处理以及Base64编码的部分知识
 ## fastjson转换byte[]
 
 将byte[]通过fastjson转换时，fastjson会自动对byte[]进行base64编码转为字符串，因此需要对结果进行base64解码恢复原始数据。

@@ -1,3 +1,10 @@
+
+---
+layout: post
+title: "java重载方法匹配优先级"
+tags: ["语法", "java"]
+---
+
 # java method overload priority
 
 ## the priority in java overload is :  
