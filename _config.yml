@@ -25,12 +25,12 @@ plugins:
 
 # Permalinks
 permalink:      /:year-:month-:day/:title
-paginate:       5
+paginate:       10
 
 # Related posts settings
 related_posts_section:
   max_count:        5
-  min_common_tags:  2
+  min_common_tags:  1
 
 # Links to social media
 social:
