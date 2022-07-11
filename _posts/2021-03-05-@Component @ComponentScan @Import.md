@@ -4,7 +4,7 @@ title: "@Component @ComponentScan @Import"
 tags: ["spring", "java"]
 ---
 
-spring中声明bean并让其被自动装配.
+除了常用的@Component注解，spring boot中一些其他声明bean并让其被自动装配的方式.
 
 
 ## 声明bean

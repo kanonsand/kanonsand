@@ -4,7 +4,7 @@ title: "fastjson对byte数组的处理"
 tags: ["fastjson", "java"]
 ---
 
-fastjson对byte数组的处理以及Base64编码的部分知识.
+fastjson对byte数组的处理以及Base64编码的部分基础知识.
 
 ## fastjson转换byte[]
 

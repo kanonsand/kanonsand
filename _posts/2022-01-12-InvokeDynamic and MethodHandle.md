@@ -4,7 +4,7 @@ title: "InvokeDynamic and MethodHandle"
 tags: ["invokeDynamic", "java"]
 ---
 
-jvm的invokedynamic指令以及java中的MethodHandler.
+java lambda的实现：jvm的invokedynamic指令以及java中的MethodHandler.
 
 
 ## InvokeDynamic指令

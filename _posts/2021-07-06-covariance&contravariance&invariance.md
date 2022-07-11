@@ -4,7 +4,7 @@ title: "java泛型的协变、逆变与不变"
 tags: ["语法", "泛型", "java"]
 ---
 
-泛型的协变、逆变、不变.
+介绍泛型的协变、逆变、不变的基本概念以及java中的应用。
 
 ## 协变、逆变、不变 （covariance，contra variance，invariance）
 

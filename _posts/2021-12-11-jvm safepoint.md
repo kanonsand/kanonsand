@@ -4,7 +4,7 @@ title: "jvm safepoint"
 tags: ["jvm", "java"]
 ---
 
-jvm中的安全点.
+jvm中的安全点一些知识（后续待补充）.
 
 # jvm safepoint
 

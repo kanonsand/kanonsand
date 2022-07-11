@@ -3,7 +3,7 @@ layout: post
 title: "Java中extends和implements"
 tags: ["java"]
 ---
-Java中extends和implements关键字.
+简单比较java中extends和implements关键字的使用场景及限制。
 
 ## extends 和 implements
 
