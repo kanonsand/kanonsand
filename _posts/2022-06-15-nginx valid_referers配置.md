@@ -54,3 +54,6 @@ Syntax:	valid_referers none | blocked | server_names | string ...
 ### 回到问题
 查看valid_referers配置，发现配置为block，而浏览器直接访问主页时没有Refer这个header。
 因此配置中加入none解决问题。或者直接将valid_referers字段和对invalid_referer的判断去掉也可以。
+
+### 用途
+可以用于网页防盗链，前提是通过浏览器的盗链，如果自行构造请求的refer头则无法防止。
