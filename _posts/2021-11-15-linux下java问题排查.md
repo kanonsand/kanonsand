@@ -54,3 +54,11 @@ root : root
 ### arthas无法attach进程
 + 查看是否以[运行进程的用户](linux下jvm问题排查.md:38)执行arthas
 + 查看目标进程的java.policy文件，比如ES权限控制比较严格，需要将arthas的路径加入java.policy文件授权
+
+### arthas获取dubbo的线程池对象（2.7.8版本）
+
+```shell
+ognl '@org.apache.dubbo.common.extension.ExtensionLoader@getExtensionLoader(@org.apache.dubbo.common.threadpool.manager.ExecutorRepository@class).getDefaultExtension().data'
+```
+
+这是一个以端口号为key，线程池对象为value的map，根据需要取对应端口号即可。
