@@ -127,3 +127,53 @@ java是一门l静态类型语言，java通过compile和runtime结合检查的方
 
 java的普通泛型是invariance的，但是通过通配符？可以实现逆变和协变。协变是read-only，逆变是write-only，这个特性可以用在对函数入参的限制上，如果我们只需要从参数中读取，则使用协变，如果需要往参数中写入，则使用逆变。
 
+
+### Comparator中的thenComparing
+使用Comparator对一个多维数组排序时，如下代码会编译失败
+```java
+//一个二位数组，每个数组长度为3，我们想要根据第一位、第二位、第三位的顺序对其排序
+int[][] arr=new int[10][3];
+
+//编写如下comparator
+Comparator<int[]> comparator = Comparator.comparingInt(a -> a[0])
+                .thenComparingInt(a -> a[1])
+                .thenComparingInt(a -> a[2]);
+
+Arrays.sort(arr,comparatoe);
+```
+编译结果如下
+```java
+java: 需要数组, 但找到java.lang.Object
+```
+但是如果只比较数组中的某一位，如下代码并不会报错
+```java
+Comparator<int[]> comparator = Comparator.comparingInt(a -> a[0]);
+
+//或者直接如下
+Arrays.sort(arr,Comparator.comparingInt(a -> a[0]));
+```
+用如下写法重写这个三个数字数组的排序，也不会报错
+```java
+Comparator<int[]> comparator = Comparator.comparingInt(a -> a[0]);
+Comparator<int[]> comparator1 = comparator.thenComparingInt(a -> a[1]);
+Comparator<int[]> comparator2 = comparator1.thenComparingInt(a -> a[2]);
+```
+这个写法只不过是将上面的链式调用进行了拆分，但是可以正常编译。
+
+这是因为Comparator使用了范型，没有使用thenComparing时，编译器根据返回值推断我们需要的
+是int[]类型，所以正常编译。但是使用thenComparing之后，编译期无法（至少目前还没有这么智能）
+推断范型类型，所以编译不通过，此时我们需要显示告知编译期范型类型，就像上面重写的三行语句的排序，
+或者如下的链式调用
+```java
+Comparator<int[]> comparator = Comparator.<int[]>comparingInt(a -> a[0])
+                .thenComparingInt(a -> a[1])
+                .thenComparingInt(a -> a[2]);
+```
+或者如下也可以达到相同的效果
+```java
+Comparator<int[]> comparator1 = Comparator.comparingInt((int[] a) -> a[0])
+                .thenComparingInt(a -> a[1])
+                .thenComparingInt(a -> a[2]);
+```
+
+所以，当编译期告知无法将Object转为范型时，尝试把类型显示提示编译期吧。
