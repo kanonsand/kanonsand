@@ -16,6 +16,41 @@ java.util.Base64.getMimeDecoder.decode(String s);
 
 特别注意要用getMimeDecoder而不是getDecoder。
 
+## fastjson @JSONField
+fastjson可以使用@JSONField注解来修改json和实体类的字段映射，例如
+```java
+class DTO{
+    @JSONField(name="src_ip_addr")
+    private String srcIp;
+}
+```
+可以将json
+```json
+{
+  "src_ip_addr": "1.1.1.1"
+}
+```
+转为对应的DTO，字段映射为srcIp。这个注解会同时影响序列化和反序列化，即我们通过toJSONString方法将实体类写出的json字段名会自动变为src_ip_addr。
+有些情况下我们会同时序列化和反序列化，但是我们只想要在反序列化时使用该注解，例如我们从第三方接口获取了一个json，将其转为我们自己的实体类，之后又需要
+把这个实体类转成json发送出去，此时我们不需要再对字段进行映射，但是使用fastjson会自动转换，此时可以如下处理：
+> 1、另辟蹊径，序列化时使用其他的库（gson或jackson），避开fastjson的处理
+> 2、修改注解位置。实际上@JSONField时可以加在方法上的，而fastjson序列化和反序列化时访问的就是字段的get和set方法，如果只想反序列化是处理，可以
+ 如下
+ ```java
+class DTO{
+    private String srcIp;
+
+    @JSONField(name="src_ip_addr")
+    public void setSrcIp(String srcIp) {
+        this.srcIp = srcIp;
+    }
+
+    public String getSrcIp() {
+       return srcIp; 
+    }
+}
+```
+这样序列化时字段名还是srcIp。
 
 
 ### Base64
