@@ -59,8 +59,27 @@ base64主要用于网络传输二进制，将不可读的二进制转换为可�
 
  这样原本每个字节8位，分割后每个字节6位，需要2^6也就是64个字符即可表示。最基本（basic）的base64使用a-z,A-Z,0-9再加上+和/两个符号这64个来编码，因为在url中+和/都有特殊含义，因此变种的url安全编码的base64使用-和_来代替原来的+和/
 
+java中编码解码方法在java.util.Base64中
+```java
+        String originalInput = "test input";
+        String encodedString = Base64.getEncoder().encodeToString(originalInput.getBytes());
+
+        byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
+        String decodedString = new String(decodedBytes);
+```
 
 
 ### MIME
 
 MIME的全称是"Multi-purpose Internet Mail Extensions"，用于邮件中发送非asc编码的文字或者其他二进制类型的文件。因为最开始的邮件规范规定了邮件只能使用ascii编码，这导致只支持英文文本。
+
+通常情况下，Base64输出一个不包含换行符的字符串，如果使用mime编码，输出结果会确保每行不超过76个字符，即没76个字符就会添加一个换行(\r\n)，java中mime编码方法如下
+
+```java
+StringBuilder buffer = getMimeBuffer();
+byte[] encodedAsBytes = buffer.toString().getBytes();
+String encodedMime = Base64.getMimeEncoder().encodeToString(encodedAsBytes);
+
+byte[] decodedBytes = Base64.getMimeDecoder().decode(encodedMime);
+String decodedMime = new String(decodedBytes);
+```
