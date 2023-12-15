@@ -1,0 +1,34 @@
+
+---
+layout: post
+title: "linux proc 文件系统"
+tags: ["linux", "proc"]
+---
+
+/proc(或者procfs)是一个伪文件系统(pseudo file system),由系统在启动时自动挂载,这里介绍下常用的一些文件
+
+### /proc/$PID/cmdline
+
+程序运行参数
+
+
+### /proc/$PID/cwd
+
+程序当前工作目录
+
+### /proc/$PID/exe
+
+程序可执行文件的链接
+
+### /proc/$PID/environ
+
+程序的环境变量，java调用系统命令时如果出现command not found 但是终端可以执行时，可以检查下环境变量是否有问题
+
+### /proc/$PID/fd
+
+列出进程所有打开的fd，系统没有安装lsof命令时，通过这个查看进程打开的fd，可以快速找到日志文件的位置
+
+
+
+
+
