@@ -41,6 +41,10 @@ Linux下获取java进程状态的一些命令和步骤
 ```shell
     runuser -l $username -g $group -c '$command'
 ```
+用sudo命令也可以，语法更加简单，-u指定用户名后后续输入都被解释为命令
+```shell
+    sudo -u $username $command
+```
 
 顺便查看用户所属的分组使用groups命令
 ```shell
