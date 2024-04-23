@@ -97,3 +97,28 @@ $ bind '"\C-t":"ttttt"'
 > 组合键，此时命令行会展示其编码，将这部分复制到上面的快捷键即可
 
 [gnu链接](https://www.gnu.org/software/bash/manual/html_node/Readline-Init-File-Syntax.html)
+
+
+### stty命令
+stty命令可以用来查看当前终端的一些设置
+```shell
+$ stty -a
+
+speed 38400 baud; rows 37; columns 87; line = 0;
+intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = <undef>;
+eol2 = <undef>; swtch = <undef>; start = ^Q; stop = ^S; susp = ^Z; rprnt = ^R;
+werase = ^W; lnext = ^V; discard = ^O; min = 1; time = 0;
+-parenb -parodd -cmspar cs8 -hupcl -cstopb cread -clocal -crtscts
+-ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr icrnl ixon -ixoff
+-iuclc -ixany -imaxbel iutf8
+opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0
+isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt
+echoctl echoke -flusho -extproc
+```
+这些输出其实是termios系统库（位于man page的第三类，不是直接的系统调用，其底层系统调用为ioctl）当前的一些配置，termios系统调用用于设置终端的一些属性，比如ECHO属性，用于设置是否在用户输入后回显，一些输入密码的场景，终端不回显用户的输入，就是这个来控制的。具体可以看man page，也可以参考[这个博客](https://blog.nelhage.com/2009/12/a-brief-introduction-to-termios-termios3-and-stty/)
+
+
+
+### 终端的一些快捷键
+Ctrl-s 暂停输出，通常用于cat了某个特别大的文件，长时间无法结束需要强制结束
+Ctrl-q 配套Ctrl-s，恢复输出
