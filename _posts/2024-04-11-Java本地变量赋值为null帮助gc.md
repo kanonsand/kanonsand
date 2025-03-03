@@ -143,3 +143,5 @@ mapList退出其作用域后也会很快被标记为可回收。
 
 
 
+### JitWatch工具
+jit的编译情况可以使用JitWatch工具，具体可以到github下载。使用时config项将代码目录配置到src/java,class目录配置到target/classes即可，不需要指定单个文件
